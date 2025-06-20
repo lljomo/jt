@@ -1,0 +1,2486 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大流量卡选号</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f5ff 0%, #e6f0ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #333;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 1000px;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 12px 40px rgba(98, 70, 234, 0.15);
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid #eaeaea;
+        }
+        
+        header {
+            background: linear-gradient(90deg, #6246ea 0%, #7b68ee 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .brand h1 {
+            font-size: 22px;
+        }
+        
+        .brand-icon {
+            font-size: 24px;
+            background: rgba(255, 255, 255, 0.2);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .admin-section {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .admin-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .admin-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .admin-panel {
+            background: rgba(255, 255, 255, 0.98);
+            border-radius: 12px;
+            padding: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+            position: absolute;
+            top: 50px;
+            right: 0;
+            width: 280px;
+            z-index: 100;
+            display: none;
+            backdrop-filter: blur(10px);
+            border: 1px solid #eee;
+        }
+        
+        .admin-panel.active {
+            display: block;
+        }
+        
+        .admin-panel h3 {
+            color: #6246ea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 15px;
+        }
+        
+        .admin-panel input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            font-size: 14px;
+        }
+        
+        .admin-panel-close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: #6246ea;
+            font-size: 20px;
+            cursor: pointer;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        
+        .admin-panel-close:hover {
+            background: #f0f0f0;
+        }
+        
+        .package-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .package-btn {
+            padding: 12px 25px;
+            font-size: 15px;
+            font-weight: 600;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .package-btn.active {
+            background: #fff;
+            color: #6246ea;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .search-box {
+            padding: 20px;
+            background: #f8faff;
+            display: flex;
+            justify-content: center;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+        }
+        
+        .search-container input {
+            width: 100%;
+            padding: 14px 18px 14px 45px;
+            border: 1px solid #ddd;
+            border-radius: 35px;
+            font-size: 15px;
+            box-shadow: 0 4px 15px rgba(98, 70, 234, 0.1);
+            transition: all 0.3s;
+        }
+        
+        .search-container input:focus {
+            border-color: #7b68ee;
+            box-shadow: 0 4px 20px rgba(123, 104, 238, 0.2);
+            outline: none;
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #7b68ee;
+            font-size: 16px;
+        }
+        
+        .content {
+            padding: 25px;
+        }
+        
+        .numbers-container {
+            display: none;
+        }
+        
+        .numbers-container.active {
+            display: block;
+        }
+        
+        .number-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .number-item {
+            padding: 20px;
+            border: 2px solid #f0f0f0;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .number-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(98, 70, 234, 0.15);
+            border-color: #7b68ee;
+        }
+        
+        .number-item .number {
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            color: #2c3e50;
+        }
+        
+        .number-item .package {
+            background: #f0f5ff;
+            color: #6246ea;
+            padding: 6px 15px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 700;
+            align-self: center;
+            margin-bottom: 12px;
+        }
+        
+        .number-item.sold {
+            background: #f9f9f9;
+            border-color: #f0f0f0;
+        }
+        
+        .number-item.sold .number {
+            color: #adb5bd;
+            text-decoration: line-through;
+        }
+        
+        .number-item.sold .package {
+            background: #e9ecef;
+            color: #868e96;
+        }
+        
+        .number-item.sold::after {
+            content: "已售";
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: #e74c3c;
+            color: white;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+        
+        .number-item.occupied {
+            background: #fff9e6;
+            border-color: #ffd166;
+        }
+        
+        .number-item.occupied::after {
+            content: "已占用";
+            position: absolute;
+            bottom: 12px;
+            right: 12px;
+            background: #ff9f1c;
+            color: white;
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-weight: bold;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .pagination button {
+            padding: 8px 18px;
+            border: 1px solid #ddd;
+            background: white;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            font-size: 14px;
+        }
+        
+        .pagination button:hover:not(:disabled) {
+            background: #6246ea;
+            color: white;
+            border-color: #6246ea;
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .page-info {
+            font-weight: 700;
+            color: #495057;
+            font-size: 14px;
+        }
+        
+        .fee-details {
+            background: #f8faff;
+            padding: 25px;
+            border-top: 1px solid #eee;
+            position: relative;
+        }
+        
+        .fee-details h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #6246ea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            font-size: 20px;
+        }
+        
+        .fee-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0 auto;
+            max-width: 750px;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(98, 70, 234, 0.1);
+            border: 1px solid #f0f0f0;
+        }
+        
+        .fee-table th {
+            background: #7b68ee;
+            color: white;
+            padding: 14px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 15px;
+        }
+        
+        .fee-table td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 14px;
+        }
+        
+        .fee-table tr:nth-child(even) {
+            background: #f8faff;
+        }
+        
+        .fee-table tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .original-price {
+            text-decoration: line-through;
+            color: #868e96;
+            font-size: 13px;
+        }
+        
+        .traffic-detail {
+            font-size: 12px;
+            color: #7b68ee;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .note {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 13px;
+            color: #7b68ee;
+            font-weight: 500;
+            background: #f0f5ff;
+            padding: 10px;
+            border-radius: 8px;
+            max-width: 750px;
+            margin: 15px auto 0;
+        }
+        
+        /* 优化后的微信二维码样式 - 可移动版 */
+        .wechat-qrcode {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 140px;
+            height: 175px;
+            background: linear-gradient(135deg, #1e90ff 0%, #4169e1 100%);
+            border-radius: 14px;
+            box-shadow: 0 8px 25px rgba(30, 144, 255, 0.4);
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 100;
+            border: 2px solid white;
+            animation: pulse 2s infinite;
+            cursor: move;
+            user-select: none;
+        }
+        
+        .wechat-qrcode::before {
+            content: "扫码咨询";
+            color: #ffff99;
+            font-weight: bold;
+            font-size: 16px;
+            margin-bottom: 12px;
+            text-align: center;
+            width: 100%;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .wechat-qrcode img {
+            width: 110px;
+            height: 110px;
+            border: 3px solid white;
+            border-radius: 8px;
+            background: white;
+            padding: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            pointer-events: none;
+        }
+        
+        .wechat-qrcode span {
+            display: block;
+            font-size: 14px;
+            color: #ffff99;
+            font-weight: 700;
+            margin-top: 12px;
+            text-align: center;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+            width: 100%;
+            padding: 4px 0;
+            background: rgba(0,0,0,0.2);
+            border-radius: 4px;
+            pointer-events: none;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(30, 144, 255, 0.6); }
+            70% { box-shadow: 0 0 0 10px rgba(30, 144, 255, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(30, 144, 255, 0); }
+        }
+
+        /* 管理员后台样式 */
+        .admin-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .admin-backdrop.active {
+            display: flex;
+        }
+        
+        .admin-dashboard {
+            background: white;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.3);
+        }
+        
+        .admin-header {
+            background: #6246ea;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .admin-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 22px;
+            cursor: pointer;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.3s;
+        }
+        
+        .admin-close:hover {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .admin-content {
+            padding: 20px;
+            max-height: calc(90vh - 65px);
+            overflow-y: auto;
+        }
+        
+        .admin-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8faff;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.05);
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 3px 12px rgba(98, 70, 234, 0.1);
+            transition: transform 0.3s;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-card h4 {
+            color: #7b68ee;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .stat-card .value {
+            font-size: 26px;
+            font-weight: bold;
+            color: #6246ea;
+        }
+        
+        .admin-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .admin-actions button {
+            padding: 8px 15px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .export-btn {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .export-btn:hover {
+            background: #219653;
+        }
+        
+        .import-btn {
+            background: #3498db;
+            color: white;
+        }
+        
+        .import-btn:hover {
+            background: #2980b9;
+        }
+        
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+        
+        .admin-table th, .admin-table td {
+            padding: 12px 14px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+            word-wrap: break-word;
+            font-size: 14px;
+        }
+        
+        .admin-table th {
+            background: #f8faff;
+            font-weight: 700;
+            cursor: pointer;
+            position: relative;
+            color: #6246ea;
+        }
+        
+        .admin-table th.sortable:hover {
+            background: #f0f5ff;
+        }
+        
+        .admin-table th .sort-indicator {
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        
+        .admin-table tr:hover {
+            background: #f8faff;
+        }
+        
+        .admin-table input {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 100%;
+            transition: all 0.3s;
+            font-size: 14px;
+        }
+        
+        .admin-table input:focus {
+            border-color: #7b68ee;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(123, 104, 238, 0.2);
+        }
+        
+        .admin-table input[type="date"] {
+            padding: 7px 10px;
+        }
+        
+        .admin-table textarea {
+            padding: 8px 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            width: 100%;
+            min-height: 55px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 14px;
+        }
+        
+        .admin-table textarea:focus {
+            border-color: #7b68ee;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(123, 104, 238, 0.2);
+        }
+        
+        .admin-table .status-select {
+            width: 100%;
+            padding: 7px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        
+        .admin-table .actions {
+            display: flex;
+            gap: 6px;
+        }
+        
+        .admin-table .actions button {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        
+        .admin-table .actions .save-btn {
+            background: #27ae60;
+            color: white;
+        }
+        
+        .admin-table .actions .save-btn:hover {
+            background: #219653;
+        }
+        
+        .admin-table .actions .cancel-btn {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .admin-table .actions .cancel-btn:hover {
+            background: #c0392b;
+        }
+        
+        /* 号码类型标签 */
+        .type-badge {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+        }
+        
+        .hot-badge {
+            background: #ff6b6b;
+        }
+        
+        .shunzi-badge {
+            background: #4CAF50;
+        }
+        
+        .beauty-badge {
+            background: #FF9800;
+        }
+        
+        /* 文件上传区域 */
+        .import-area {
+            display: none;
+            background: #f8faff;
+            border: 2px dashed #7b68ee;
+            border-radius: 10px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        
+        .import-area.active {
+            display: block;
+        }
+        
+        .import-area p {
+            color: #6246ea;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .import-area button {
+            padding: 8px 16px;
+            background: #6246ea;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+        
+        .import-area button:hover {
+            background: #7b68ee;
+        }
+        
+        /* 响应式设计 - 16:9 手机适配 */
+        @media (max-width: 767px) {
+            /* 号码列表在手机上显示为2行2列 */
+            .number-list {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .number-item {
+                padding: 15px;
+                min-height: 120px;
+            }
+            
+            .number-item .number {
+                font-size: 16px;
+                letter-spacing: normal;
+            }
+            
+            .number-item .package {
+                font-size: 13px;
+                padding: 4px 10px;
+            }
+            
+            .package-buttons {
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .package-btn {
+                padding: 10px 15px;
+                font-size: 14px;
+            }
+            
+            .admin-section {
+                position: static;
+                justify-content: center;
+                margin-top: 15px;
+            }
+            
+            .admin-panel {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 85%;
+            }
+            
+            .wechat-qrcode {
+                width: 130px;
+                height: 165px;
+                padding: 10px;
+            }
+            
+            .wechat-qrcode img {
+                width: 100px;
+                height: 100px;
+            }
+            
+            .fee-table {
+                font-size: 13px;
+            }
+            
+            .fee-table th, .fee-table td {
+                padding: 10px 8px;
+            }
+            
+            .note {
+                font-size: 12px;
+                padding: 8px;
+            }
+            
+            .pagination {
+                flex-wrap: wrap;
+                gap: 10px;
+            }
+            
+            .pagination button {
+                padding: 6px 12px;
+                font-size: 13px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .brand h1 {
+                font-size: 18px;
+            }
+            
+            .number-item {
+                padding: 12px;
+                min-height: 110px;
+            }
+            
+            .number-item .number {
+                font-size: 15px;
+            }
+            
+            .number-item .package {
+                font-size: 12px;
+            }
+            
+            .search-container input {
+                padding: 12px 15px 12px 40px;
+                font-size: 14px;
+            }
+            
+            .search-container i {
+                font-size: 14px;
+                left: 15px;
+            }
+            
+            .content {
+                padding: 15px;
+            }
+            
+            .fee-details {
+                padding: 20px 15px;
+            }
+            
+            .fee-details h2 {
+                font-size: 18px;
+            }
+            
+            .wechat-qrcode {
+                width: 120px;
+                height: 155px;
+            }
+            
+            .wechat-qrcode::before {
+                font-size: 15px;
+            }
+            
+            .wechat-qrcode img {
+                width: 90px;
+                height: 90px;
+            }
+            
+            .wechat-qrcode span {
+                font-size: 13px;
+            }
+        }
+        
+        /* 超小屏幕优化 */
+        @media (max-width: 360px) {
+            .number-item .number {
+                font-size: 14px;
+            }
+            
+            .number-item .package {
+                font-size: 11px;
+            }
+            
+            .package-btn {
+                font-size: 13px;
+            }
+            
+            .pagination button {
+                font-size: 12px;
+                padding: 5px 10px;
+            }
+            
+            .page-info {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="brand">
+                <div class="brand-icon">
+                    <i class="fas fa-wifi"></i>
+                </div>
+                <h1>大流量卡选号</h1>
+            </div>
+            
+            <div class="admin-section">
+                <button class="admin-btn" id="adminBtn">
+                    <i class="fas fa-user-cog"></i> 管理员
+                </button>
+                <div class="admin-panel" id="adminPanel">
+                    <button class="admin-panel-close" id="adminPanelClose">&times;</button>
+                    <h3><i class="fas fa-lock"></i> 管理员登录</h3>
+                    <input type="password" id="adminPassword" placeholder="输入管理员密码">
+                    <button class="admin-btn" id="loginBtn" style="background: #7b68ee; color: white; width: 100%; justify-content: center;">
+                        登录
+                    </button>
+                    <div id="adminActions" style="display: none; margin-top: 15px;">
+                        <p style="color: #27ae60; margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-check-circle"></i> 管理员已登录
+                        </p>
+                        <button class="admin-btn" id="markSoldBtn" style="background: #e74c3c; color: white; width: 100%; justify-content: center; margin-bottom: 10px;">
+                            <i class="fas fa-tag"></i> 标记号码状态
+                        </button>
+                        <button class="admin-btn" id="adminDashboardBtn" style="background: #6246ea; color: white; width: 100%; justify-content: center; margin-bottom: 10px;">
+                            <i class="fas fa-tachometer-alt"></i> 管理后台
+                        </button>
+                        <button class="admin-btn" id="saveHtmlBtn" style="background: #9b59b6; color: white; width: 100%; justify-content: center; margin-bottom: 10px;">
+                            <i class="fas fa-download"></i> 保存HTML
+                        </button>
+                        <button class="admin-btn" id="logoutBtn" style="background: #95a5a6; color: white; width: 100%; justify-content: center;">
+                            <i class="fas fa-sign-out-alt"></i> 退出登录
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="package-buttons">
+                <button class="package-btn active" data-package="29">
+                    <i class="fas fa-mobile-alt"></i> 29元套餐
+                </button>
+                <button class="package-btn" data-package="39">
+                    <i class="fas fa-mobile-alt"></i> 39元套餐
+                </button>
+            </div>
+        </header>
+        
+        <div class="search-box">
+            <div class="search-container">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="输入号码搜索...">
+            </div>
+        </div>
+        
+        <div class="content">
+            <!-- 29元套餐号码容器 -->
+            <div class="numbers-container active" id="package29">
+                <div class="number-list" id="numberList29"></div>
+                <div class="pagination">
+                    <button class="prev-page" data-package="29">上一页</button>
+                    <span class="page-info">第 <span class="current-page">1</span> 页</span>
+                    <button class="next-page" data-package="29">下一页</button>
+                </div>
+            </div>
+
+            <!-- 39元套餐号码容器 -->
+            <div class="numbers-container" id="package39">
+                <div class="number-list" id="numberList39"></div>
+                <div class="pagination">
+                    <button class="prev-page" data-package="39">上一页</button>
+                    <span class="page-info">第 <span class="current-page">1</span> 页</span>
+                    <button class="next-page" data-package="39">下一页</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="fee-details">
+            <h2><i class="fas fa-file-invoice-dollar"></i> 套餐资费详情</h2>
+            <table class="fee-table">
+                <thead>
+                    <tr>
+                        <th>月租</th>
+                        <th>流量</th>
+                        <th>通话</th>
+                        <th>会员</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            39元<br>
+                            <span class="original-price">原价59元</span>
+                        </td>
+                        <td>
+                            530G<br>
+                            <div class="traffic-detail">130G全国+400G成都</div>
+                        </td>
+                        <td>300分钟</td>
+                        <td>2个/月（送4年）</td>
+                    </tr>
+                    <tr>
+                        <td>29元</td>
+                        <td>
+                            330G<br>
+                            <div class="traffic-detail">30G全国+300G成都</div>
+                        </td>
+                        <td>100分钟</td>
+                        <td>1个/月（送4年）</td>
+                    </tr>
+                </tbody>
+            </table>
+            <div class="note">
+                <i class="fas fa-info-circle"></i> 注：4年优惠套餐，到期可续届时优惠。大流量卡为成都地区专属优惠卡
+            </div>
+        </div>
+    </div>
+
+    <!-- 优化后的微信二维码（可移动） -->
+    <div class="wechat-qrcode" id="wechatQrcode">
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=100x100&data=https://u.wechat.com/MBuhQI0fsnbVncowb6nF81U" alt="微信咨询">
+        <span>专属客服：一对一</span>
+    </div>
+
+    <!-- 管理员后台 -->
+    <div class="admin-backdrop" id="adminBackdrop">
+        <div class="admin-dashboard">
+            <div class="admin-header">
+                <h3><i class="fas fa-tachometer-alt"></i> 大流量卡选号管理后台</h3>
+                <button class="admin-close" id="adminCloseBtn">&times;</button>
+            </div>
+            <div class="admin-content">
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <h4>总号码数</h4>
+                        <div class="value" id="statTotal">194</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>已售号码</h4>
+                        <div class="value" id="statSold">5</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>29元套餐销售</h4>
+                        <div class="value" id="statPackage29">3</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>39元套餐销售</h4>
+                        <div class="value" id="statPackage39">2</div>
+                    </div>
+                </div>
+                
+                <div class="admin-actions">
+                    <button class="export-btn" id="exportBtn">
+                        <i class="fas fa-file-export"></i> 导出数据
+                    </button>
+                    <button class="import-btn" id="importBtn">
+                        <i class="fas fa-file-import"></i> 导入数据
+                    </button>
+                </div>
+                
+                <div class="import-area" id="importArea">
+                    <p>请上传数据文件（支持CSV/TXT/XLS/XLSX格式）</p>
+                    <input type="file" id="dataFile" accept=".csv,.txt,.xls,.xlsx">
+                    <button id="confirmImport">确认导入</button>
+                </div>
+                
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 12%">手机号码</th>
+                            <th style="width: 10%">套餐类型</th>
+                            <th style="width: 10%">类型</th>
+                            <th style="width: 10%">状态</th>
+                            <th style="width: 12%">办理人</th>
+                            <th style="width: 12%">办理时间</th>
+                            <th style="width: 22%">备注</th>
+                            <th style="width: 12%">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminTableBody">
+                        <!-- 动态生成的管理数据 -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 号码数据
+        const numbersData = {
+            "29": [
+                "13008111828", "13008115828", "13008116639", "13008116720", "13008116782", "13008116835",
+                "13008116839", "13008116935", "13008116938", "13008116972", "13008117009", "13008117013",
+                "13008117062", "13008117126", "13008117218", "13008117398", "13008117521", "13008117527",
+                "13008117562", "13008117598", "13008117705", "13008117707", "15680990051", "15680990061",
+                "15680990063", "15680990065", "15680990067", "15680990115", "15680990121", "15680990128",
+                "15680990129", "15680990132", "15680990150", "15680990151", "15680990160", "15680990189",
+                "15680990191", "15680990192", "15680990195", "15680990197", "15680990210", "15680990223",
+                "15680990225", "15680990251", "15680990256", "15680990257"
+            ],
+            "39": [
+                "15680990331", "15680990336", "15680990309", "15680990313", "15680990501", "15680990509",
+                "15680990550", "15680990551", "15680990568", "15680990589", "15680990601", "15680990607",
+                "15680990618", "15680990628", "15680990629", "15680990656", "15680990701", "15680990706",
+                "15680990801", "15680990817", "15680990830", "15680990835", "15680990839", "15680990851",
+                "15680990878", "15680990879", "15680990886", "15680990910", "15680990939", "15680990950",
+                "15680990960", "15680990968", "15680990971", "15680990985", "15680990986", "15680990989",
+                "15680991008", "15680991017", "15680991018", "15680991019", "15680991025", "15680991030",
+                "15680991031", "15680991035", "15680991039", "13008113805", "13008110096", "13008110290",
+                "13008110316", "13008110508", "13008110556", "13008110610", "13008110629", "13008110752",
+                "13008110753", "13008110761", "13008110768", "13008110868", "13008110960", "13008110983",
+                "13008111083", "13008111089", "13008111225", "13008111329", "13008111393", "13008111559",
+                "13008111770", "13008111917", "13008111926", "13008111927", "13008111960", "13008111967",
+                "13008111983", "13008111986", "13008112015", "13008112081", "13008112265", "13008112286",
+                "13008112307", "13008112315", "13008112329", "13008112531", "13008112595", "13008112701",
+                "13008112715", "13008112731", "13008112751", "13008112792", "13008112812", "13008112995",
+                "13008113020", "13008113070", "13008113085", "13008113189", "13008113517", "13008113531",
+                "13008113717", "13008113883", "13008113896", "13008113983", "13008113993", "13008115039",
+                "13008115125", "13008115359", "13008115608", "13008115707", "13008115786", "13008115876",
+                "13008115898", "13008115918", "13008116035", "13008116131", "13008116270", "13008116312",
+                "13008116371", "13008116532", "13008116569", "13008116605", "13008116858", "13008117782",
+                "13008117801", "13008117892", "13008117967", "13008117973", "13008118171", "13008118190",
+                "13008118206", "13008118220", "13008118358", "13008118359", "13008118629", "13008118697",
+                "13008118786", "13008118902", "13008118927", "13008118937", "13008118983", "13008119078",
+                "13008119179", "13008119258", "13008119570", "13008119579", "13008119676", "13008119887",
+                "13008119907", "13008119909", "13008119916", "13008119970"
+            ]
+        };
+
+        // 号码状态和类型数据
+        let numbersStatusData = {
+            "13008117707": { 
+                package: "29", 
+                type: "靓号",
+                status: "已售",
+                buyer: "张先生",
+                date: "2023-10-15",
+                remark: "老客户推荐"
+            },
+            "13008119909": { 
+                package: "39", 
+                type: "热门",
+                status: "已售",
+                buyer: "李女士",
+                date: "2023-10-16",
+                remark: "公司团购"
+            },
+            "13008115828": { 
+                package: "29", 
+                type: "顺子",
+                status: "已占用",
+                buyer: "王先生",
+                date: "2023-10-17",
+                remark: "预留号码"
+            },
+            "13008111828": { 
+                package: "29", 
+                type: "靓号",
+                status: "已售",
+                buyer: "赵女士",
+                date: "2023-10-18",
+                remark: "门店办理"
+            },
+            "13008111089": { 
+                package: "39", 
+                type: "热门",
+                status: "已占用",
+                buyer: "刘先生",
+                date: "2023-10-19",
+                remark: "线上活动"
+            }
+        };
+        
+        // 当前状态
+        let currentPackage = "29";
+        let currentPages = {
+            "29": 1,
+            "39": 1
+        };
+        let filteredNumbers = {
+            "29": [...numbersData["29"]],
+            "39": [...numbersData["39"]]
+        };
+        const itemsPerPage = 4; // 每页显示4个号码
+        let isAdmin = false;
+        let isMarkingStatus = false;
+        let sortDirection = "desc"; // 默认按日期降序排列
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNumbers("29");
+            renderNumbers("39");
+            updateStats();
+            
+            // 套餐按钮点击事件
+            document.querySelectorAll('.package-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.package-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.numbers-container').forEach(container => {
+                        container.classList.remove('active');
+                    });
+                    currentPackage = this.dataset.package;
+                    document.getElementById(`package${currentPackage}`).classList.add('active');
+                    renderNumbers(currentPackage);
+                });
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.prev-page, .next-page').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const packageType = this.dataset.package;
+                    if (this.classList.contains('prev-page')) {
+                        if (currentPages[packageType] > 1) {
+                            currentPages[packageType]--;
+                        }
+                    } else {
+                        const totalPages = Math.ceil(filteredNumbers[packageType].length / itemsPerPage);
+                        if (currentPages[packageType] < totalPages) {
+                            currentPages[packageType]++;
+                        }
+                    }
+                    renderNumbers(packageType);
+                });
+            });
+            
+            // 搜索框输入事件
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                filterNumbers(searchTerm);
+                currentPages[currentPackage] = 1;
+                renderNumbers(currentPackage);
+            });
+            
+            // 管理员面板切换
+            document.getElementById('adminBtn').addEventListener('click', function() {
+                const panel = document.getElementById('adminPanel');
+                panel.classList.toggle('active');
+            });
+            
+            // 管理员登录
+            document.getElementById('loginBtn').addEventListener('click', function() {
+                const password = document.getElementById('adminPassword').value;
+                if (password === "liu12244") {
+                    isAdmin = true;
+                    document.getElementById('adminActions').style.display = 'block';
+                    document.getElementById('adminPassword').value = '';
+                    document.getElementById('adminPanel').classList.remove('active');
+                    alert('管理员登录成功！');
+                } else {
+                    alert('密码错误！');
+                }
+            });
+            
+            // 管理员面板关闭按钮
+            document.getElementById('adminPanelClose').addEventListener('click', function() {
+                document.getElementById('adminPanel').classList.remove('active');
+            });
+            
+            // 标记状态按钮
+            document.getElementById('markSoldBtn').addEventListener('click', function() {
+                isMarkingStatus = !isMarkingStatus;
+                if (isMarkingStatus) {
+                    this.innerHTML = '<i class="fas fa-times"></i> 取消标记';
+                    this.style.background = '#95a5a6';
+                    alert('标记模式已开启，点击号码可标记状态');
+                } else {
+                    this.innerHTML = '<i class="fas fa-tag"></i> 标记号码状态';
+                    this.style.background = '#e74c3c';
+                    alert('标记模式已关闭');
+                }
+            });
+            
+            // 打开管理后台
+            document.getElementById('adminDashboardBtn').addEventListener('click', function() {
+                renderAdminDashboard();
+                document.getElementById('adminBackdrop').classList.add('active');
+            });
+            
+            // 关闭管理后台
+            document.getElementById('adminCloseBtn').addEventListener('click', function() {
+                document.getElementById('adminBackdrop').classList.remove('active');
+            });
+            
+            // 退出登录
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                isAdmin = false;
+                isMarkingStatus = false;
+                document.getElementById('adminActions').style.display = 'none';
+                document.getElementById('markSoldBtn').innerHTML = '<i class="fas fa-tag"></i> 标记号码状态';
+                document.getElementById('markSoldBtn').style.background = '#e74c3c';
+                alert('已退出管理员登录');
+            });
+            
+            // 导出按钮事件
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            
+            // 导入按钮事件
+            document.getElementById('importBtn').addEventListener('click', function() {
+                const importArea = document.getElementById('importArea');
+                importArea.classList.toggle('active');
+            });
+            
+            // 确认导入按钮事件
+            document.getElementById('confirmImport').addEventListener('click', importData);
+            
+            // 保存HTML按钮事件
+            document.getElementById('saveHtmlBtn').addEventListener('click', saveAsHtml);
+            
+            // 添加二维码拖动功能
+            enableQrDrag();
+        });
+
+        // 更新统计信息
+        function updateStats() {
+            const total = numbersData["29"].length + numbersData["39"].length;
+            const sold = Object.values(numbersStatusData).filter(data => data.status === "已售").length;
+            const occupied = Object.values(numbersStatusData).filter(data => data.status === "已占用").length;
+            
+            // 计算各套餐销售数量
+            let package29Count = 0;
+            let package39Count = 0;
+            
+            for (const num in numbersStatusData) {
+                if (numbersStatusData[num].package === "29" && numbersStatusData[num].status === "已售") {
+                    package29Count++;
+                } else if (numbersStatusData[num].package === "39" && numbersStatusData[num].status === "已售") {
+                    package39Count++;
+                }
+            }
+            
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statSold').textContent = sold;
+            document.getElementById('statPackage29').textContent = package29Count;
+            document.getElementById('statPackage39').textContent = package39Count;
+        }
+
+        // 过滤号码
+        function filterNumbers(searchTerm) {
+            if (searchTerm === '') {
+                filteredNumbers["29"] = [...numbersData["29"]];
+                filteredNumbers["39"] = [...numbersData["39"]];
+                return;
+            }
+            
+            filteredNumbers["29"] = numbersData["29"].filter(num => num.includes(searchTerm));
+            filteredNumbers["39"] = numbersData["39"].filter(num => num.includes(searchTerm));
+        }
+
+        // 渲染号码列表
+        function renderNumbers(packageType) {
+            const container = document.getElementById(`numberList${packageType}`);
+            const currentPage = currentPages[packageType];
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const numbersToShow = filteredNumbers[packageType].slice(startIndex, endIndex);
+            
+            container.innerHTML = '';
+            
+            if (numbersToShow.length === 0) {
+                container.innerHTML = '<div class="no-results" style="grid-column: span 2; text-align: center; padding: 40px; color: #7b68ee; font-size: 16px;"><i class="fas fa-search"></i> 没有找到匹配的号码</div>';
+            } else {
+                numbersToShow.forEach(number => {
+                    const numberItem = document.createElement('div');
+                    numberItem.className = 'number-item';
+                    
+                    // 应用状态样式
+                    if (numbersStatusData[number]) {
+                        if (numbersStatusData[number].status === "已售") {
+                            numberItem.classList.add('sold');
+                        } else if (numbersStatusData[number].status === "已占用") {
+                            numberItem.classList.add('occupied');
+                        }
+                    }
+                    
+                    // 获取号码类型
+                    const numberType = numbersStatusData[number]?.type || "";
+                    let typeBadge = "";
+                    
+                    if (numberType === "热门") {
+                        typeBadge = '<div class="type-badge hot-badge">热门</div>';
+                    } else if (numberType === "顺子") {
+                        typeBadge = '<div class="type-badge shunzi-badge">顺子</div>';
+                    } else if (numberType === "靓号") {
+                        typeBadge = '<div class="type-badge beauty-badge">靓号</div>';
+                    }
+                    
+                    numberItem.innerHTML = `
+                        ${typeBadge}
+                        <div class="number">${number}</div>
+                        <div class="package">${packageType}元套餐</div>
+                    `;
+                    
+                    numberItem.addEventListener('click', function() {
+                        if (isAdmin && isMarkingStatus) {
+                            // 标记/取消标记状态
+                            if (numbersStatusData[number]) {
+                                delete numbersStatusData[number];
+                                this.classList.remove('sold', 'occupied');
+                            } else {
+                                // 状态选择对话框
+                                const status = prompt("请选择状态:\n1. 已售\n2. 已占用\n3. 空闲", "1");
+                                let statusText = "空闲";
+                                
+                                if (status === "1") statusText = "已售";
+                                else if (status === "2") statusText = "已占用";
+                                
+                                // 类型选择对话框
+                                const type = prompt("请选择类型:\n1. 热门\n2. 顺子\n3. 靓号\n4. 无", "1");
+                                let typeText = "";
+                                if (type === "1") typeText = "热门";
+                                else if (type === "2") typeText = "顺子";
+                                else if (type === "3") typeText = "靓号";
+                                
+                                const buyer = prompt(`请输入${number}的办理人姓名:`) || "未填写";
+                                const now = new Date();
+                                const dateStr = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                                const remark = prompt(`请输入${number}的备注信息（可选）:`) || "";
+                                
+                                numbersStatusData[number] = { 
+                                    package: packageType,
+                                    type: typeText,
+                                    status: statusText,
+                                    buyer: buyer,
+                                    date: dateStr,
+                                    remark: remark
+                                };
+                                
+                                if (statusText === "已售") {
+                                    this.classList.add('sold');
+                                } else if (statusText === "已占用") {
+                                    this.classList.add('occupied');
+                                }
+                            }
+                            updateStats();
+                            renderAdminDashboard();
+                        } else if (!numbersStatusData[number] || numbersStatusData[number].status === "空闲") {
+                            // 选择号码（仅当号码空闲时）
+                            document.querySelectorAll('.number-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            this.classList.add('selected');
+                            console.log(`已选择号码: ${number}, 套餐: ${packageType}元`);
+                        }
+                    });
+                    
+                    container.appendChild(numberItem);
+                });
+            }
+            
+            // 更新分页信息
+            const totalPages = Math.ceil(filteredNumbers[packageType].length / itemsPerPage);
+            const paginationContainer = document.querySelector(`#package${packageType} .pagination`);
+            paginationContainer.querySelector('.current-page').textContent = currentPage;
+            
+            // 更新分页按钮状态
+            const prevBtn = paginationContainer.querySelector('.prev-page');
+            const nextBtn = paginationContainer.querySelector('.next-page');
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+        
+        // 渲染管理员后台
+        function renderAdminDashboard() {
+            const tableBody = document.getElementById('adminTableBody');
+            tableBody.innerHTML = '';
+            
+            // 获取所有号码并排序
+            const allNumbers = [...numbersData["29"], ...numbersData["39"]];
+            const numberStatusList = allNumbers.map(number => {
+                return {
+                    number,
+                    data: numbersStatusData[number] || {
+                        package: number.startsWith("130") ? "29" : "39",
+                        type: "",
+                        status: "空闲",
+                        buyer: "",
+                        date: "",
+                        remark: ""
+                    }
+                };
+            });
+            
+            numberStatusList.sort((a, b) => {
+                const dateA = new Date(a.data.date);
+                const dateB = new Date(b.data.date);
+                
+                if (sortDirection === "asc") {
+                    return dateA - dateB;
+                } else {
+                    return dateB - dateA;
+                }
+            });
+            
+            // 添加所有号码
+            numberStatusList.forEach(({ number, data }) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${number}</td>
+                    <td>${data.package}元套餐</td>
+                    <td>
+                        <select class="type-select" data-number="${number}">
+                            <option value="" ${data.type === '' ? 'selected' : ''}>无</option>
+                            <option value="热门" ${data.type === '热门' ? 'selected' : ''}>热门</option>
+                            <option value="顺子" ${data.type === '顺子' ? 'selected' : ''}>顺子</option>
+                            <option value="靓号" ${data.type === '靓号' ? 'selected' : ''}>靓号</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="status-select" data-number="${number}">
+                            <option value="空闲" ${data.status === '空闲' ? 'selected' : ''}>空闲</option>
+                            <option value="已占用" ${data.status === '已占用' ? 'selected' : ''}>已占用</option>
+                            <option value="已售" ${data.status === '已售' ? 'selected' : ''}>已售</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" value="${data.buyer}" data-number="${number}" class="buyer-input">
+                    </td>
+                    <td>
+                        <input type="date" value="${data.date}" data-number="${number}" class="date-input">
+                    </td>
+                    <td>
+                        <textarea data-number="${number}" class="remark-input">${data.remark || ''}</textarea>
+                    </td>
+                    <td class="actions">
+                        <button class="save-btn" data-number="${number}">保存</button>
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            // 添加保存按钮事件
+            document.querySelectorAll('.save-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const number = this.dataset.number;
+                    const buyerInput = document.querySelector(`.buyer-input[data-number="${number}"]`);
+                    const dateInput = document.querySelector(`.date-input[data-number="${number}"]`);
+                    const remarkInput = document.querySelector(`.remark-input[data-number="${number}"]`);
+                    const statusSelect = document.querySelector(`.status-select[data-number="${number}"]`);
+                    const typeSelect = document.querySelector(`.type-select[data-number="${number}"]`);
+                    
+                    if (!numbersStatusData[number]) {
+                        numbersStatusData[number] = {
+                            package: number.startsWith("130") ? "29" : "39",
+                            type: "",
+                            status: "空闲",
+                            buyer: "",
+                            date: "",
+                            remark: ""
+                        };
+                    }
+                    
+                    numbersStatusData[number].buyer = buyerInput.value;
+                    numbersStatusData[number].date = dateInput.value;
+                    numbersStatusData[number].remark = remarkInput.value;
+                    numbersStatusData[number].status = statusSelect.value;
+                    numbersStatusData[number].type = typeSelect.value;
+                    
+                    // 重新排序并刷新表格
+                    renderAdminDashboard();
+                    renderNumbers("29");
+                    renderNumbers("39");
+                    alert('信息已更新！');
+                });
+            });
+        }
+        
+        // 导出数据为CSV
+        function exportData() {
+            let csvContent = "手机号码,套餐类型,类型,状态,办理人,办理时间,备注\n";
+            
+            // 获取所有号码
+            const allNumbers = [...numbersData["29"], ...numbersData["39"]];
+            
+            // 排序
+            const sortedNumbers = allNumbers.sort((a, b) => {
+                const dataA = numbersStatusData[a] || { date: "" };
+                const dataB = numbersStatusData[b] || { date: "" };
+                const dateA = new Date(dataA.date);
+                const dateB = new Date(dataB.date);
+                return dateB - dateA;
+            });
+            
+            // 构建CSV内容
+            sortedNumbers.forEach(number => {
+                const data = numbersStatusData[number] || {
+                    package: number.startsWith("130") ? "29" : "39",
+                    type: "",
+                    status: "空闲",
+                    buyer: "",
+                    date: "",
+                    remark: ""
+                };
+                
+                const remark = data.remark ? data.remark.replace(/,/g, '，') : '';
+                csvContent += `${number},${data.package}元套餐,${data.type},${data.status},${data.buyer},${data.date},${remark}\n`;
+            });
+            
+            // 创建Blob对象
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // 创建下载链接
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "大流量卡销售数据.csv");
+            link.style.visibility = 'hidden';
+            
+            // 添加到文档并触发点击
+            document.body.appendChild(link);
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+        }
+        
+        // 导入数据
+        function importData() {
+            const fileInput = document.getElementById('dataFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请选择要导入的文件');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let contents = e.target.result;
+                let lines = [];
+                
+                // 根据文件类型解析
+                if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                    // 使用SheetJS库解析Excel
+                    try {
+                        const workbook = XLSX.read(contents, {type: 'binary'});
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        contents = XLSX.utils.sheet_to_csv(firstSheet);
+                        lines = contents.split('\n');
+                    } catch (e) {
+                        alert('Excel解析错误: ' + e.message);
+                        return;
+                    }
+                } else {
+                    // 处理CSV/TXT
+                    lines = contents.split('\n');
+                }
+                
+                // 处理数据行
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const [number, packageType, type, status, buyer, date, remark] = line.split(',');
+                    
+                    if (number && packageType && status) {
+                        numbersStatusData[number] = {
+                            package: packageType.replace('元套餐', ''),
+                            type: type || "",
+                            status: status,
+                            buyer: buyer || "",
+                            date: date || "",
+                            remark: remark ? remark.replace(/，/g, ',') : ""
+                        };
+                    }
+                }
+                
+                // 更新界面
+                updateStats();
+                renderNumbers("29");
+                renderNumbers("39");
+                renderAdminDashboard();
+                
+                alert('数据导入成功！');
+            };
+            
+            if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                reader.readAsBinaryString(file);
+            } else {
+                reader.readAsText(file, 'UTF-8');
+            }
+        }
+        
+        // 保存为HTML文件（修复管理员界面问题）
+        function saveAsHtml() {
+            // 创建包含当前数据的HTML字符串
+            const dataStr = JSON.stringify({
+                numbersStatusData,
+                currentPackage,
+                currentPages
+            });
+            
+            // 获取原始HTML结构（不带管理员界面）
+            const containerHTML = document.querySelector('.container').outerHTML;
+            const wechatQrcodeHTML = document.getElementById('wechatQrcode').outerHTML;
+            const adminBackdropHTML = document.getElementById('adminBackdrop').outerHTML;
+            
+            // 确保管理员界面是关闭状态
+            const cleanAdminBackdropHTML = adminBackdropHTML.replace('admin-backdrop active', 'admin-backdrop');
+            
+            const htmlContent = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大流量卡选号</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>
+    <style>
+        ${document.querySelector('style').innerHTML}
+    </style>
+</head>
+<body>
+    <div class="container">
+        ${containerHTML}
+    </div>
+    
+    ${wechatQrcodeHTML}
+    
+    ${cleanAdminBackdropHTML}
+
+    <script>
+        // 号码数据
+        const numbersData = ${JSON.stringify(numbersData)};
+        
+        // 号码状态和类型数据
+        let numbersStatusData = ${JSON.stringify(numbersStatusData)};
+        
+        // 当前状态
+        let currentPackage = "${currentPackage}";
+        let currentPages = ${JSON.stringify(currentPages)};
+        let filteredNumbers = {
+            "29": [...numbersData["29"]],
+            "39": [...numbersData["39"]]
+        };
+        const itemsPerPage = 4;
+        let isAdmin = false;
+        let isMarkingStatus = false;
+        let sortDirection = "desc";
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            renderNumbers("29");
+            renderNumbers("39");
+            updateStats();
+            
+            // 套餐按钮点击事件
+            document.querySelectorAll('.package-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.package-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.numbers-container').forEach(container => {
+                        container.classList.remove('active');
+                    });
+                    currentPackage = this.dataset.package;
+                    document.getElementById(\`package\${currentPackage}\`).classList.add('active');
+                    renderNumbers(currentPackage);
+                });
+            });
+            
+            // 分页按钮点击事件
+            document.querySelectorAll('.prev-page, .next-page').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const packageType = this.dataset.package;
+                    if (this.classList.contains('prev-page')) {
+                        if (currentPages[packageType] > 1) {
+                            currentPages[packageType]--;
+                        }
+                    } else {
+                        const totalPages = Math.ceil(filteredNumbers[packageType].length / itemsPerPage);
+                        if (currentPages[packageType] < totalPages) {
+                            currentPages[packageType]++;
+                        }
+                    }
+                    renderNumbers(packageType);
+                });
+            });
+            
+            // 搜索框输入事件
+            document.getElementById('searchInput').addEventListener('input', function() {
+                const searchTerm = this.value.trim();
+                filterNumbers(searchTerm);
+                currentPages[currentPackage] = 1;
+                renderNumbers(currentPackage);
+            });
+            
+            // 管理员面板切换
+            document.getElementById('adminBtn').addEventListener('click', function() {
+                const panel = document.getElementById('adminPanel');
+                panel.classList.toggle('active');
+            });
+            
+            // 管理员登录
+            document.getElementById('loginBtn').addEventListener('click', function() {
+                const password = document.getElementById('adminPassword').value;
+                if (password === "liu12244") {
+                    isAdmin = true;
+                    document.getElementById('adminActions').style.display = 'block';
+                    document.getElementById('adminPassword').value = '';
+                    document.getElementById('adminPanel').classList.remove('active');
+                    alert('管理员登录成功！');
+                } else {
+                    alert('密码错误！');
+                }
+            });
+            
+            // 管理员面板关闭按钮
+            document.getElementById('adminPanelClose').addEventListener('click', function() {
+                document.getElementById('adminPanel').classList.remove('active');
+            });
+            
+            // 标记状态按钮
+            document.getElementById('markSoldBtn').addEventListener('click', function() {
+                isMarkingStatus = !isMarkingStatus;
+                if (isMarkingStatus) {
+                    this.innerHTML = '<i class="fas fa-times"></i> 取消标记';
+                    this.style.background = '#95a5a6';
+                    alert('标记模式已开启，点击号码可标记状态');
+                } else {
+                    this.innerHTML = '<i class="fas fa-tag"></i> 标记号码状态';
+                    this.style.background = '#e74c3c';
+                    alert('标记模式已关闭');
+                }
+            });
+            
+            // 打开管理后台
+            document.getElementById('adminDashboardBtn').addEventListener('click', function() {
+                renderAdminDashboard();
+                document.getElementById('adminBackdrop').classList.add('active');
+            });
+            
+            // 关闭管理后台
+            document.getElementById('adminCloseBtn').addEventListener('click', function() {
+                document.getElementById('adminBackdrop').classList.remove('active');
+            });
+            
+            // 退出登录
+            document.getElementById('logoutBtn').addEventListener('click', function() {
+                isAdmin = false;
+                isMarkingStatus = false;
+                document.getElementById('adminActions').style.display = 'none';
+                document.getElementById('markSoldBtn').innerHTML = '<i class="fas fa-tag"></i> 标记号码状态';
+                document.getElementById('markSoldBtn').style.background = '#e74c3c';
+                alert('已退出管理员登录');
+            });
+            
+            // 导出按钮事件
+            document.getElementById('exportBtn').addEventListener('click', exportData);
+            
+            // 导入按钮事件
+            document.getElementById('importBtn').addEventListener('click', function() {
+                const importArea = document.getElementById('importArea');
+                importArea.classList.toggle('active');
+            });
+            
+            // 确认导入按钮事件
+            document.getElementById('confirmImport').addEventListener('click', importData);
+            
+            // 保存HTML按钮事件
+            document.getElementById('saveHtmlBtn').addEventListener('click', saveAsHtml);
+            
+            // 添加二维码拖动功能
+            enableQrDrag();
+        });
+
+        // 更新统计信息
+        function updateStats() {
+            const total = numbersData["29"].length + numbersData["39"].length;
+            const sold = Object.values(numbersStatusData).filter(data => data.status === "已售").length;
+            const occupied = Object.values(numbersStatusData).filter(data => data.status === "已占用").length;
+            
+            // 计算各套餐销售数量
+            let package29Count = 0;
+            let package39Count = 0;
+            
+            for (const num in numbersStatusData) {
+                if (numbersStatusData[num].package === "29" && numbersStatusData[num].status === "已售") {
+                    package29Count++;
+                } else if (numbersStatusData[num].package === "39" && numbersStatusData[num].status === "已售") {
+                    package39Count++;
+                }
+            }
+            
+            document.getElementById('statTotal').textContent = total;
+            document.getElementById('statSold').textContent = sold;
+            document.getElementById('statPackage29').textContent = package29Count;
+            document.getElementById('statPackage39').textContent = package39Count;
+        }
+
+        // 过滤号码
+        function filterNumbers(searchTerm) {
+            if (searchTerm === '') {
+                filteredNumbers["29"] = [...numbersData["29"]];
+                filteredNumbers["39"] = [...numbersData["39"]];
+                return;
+            }
+            
+            filteredNumbers["29"] = numbersData["29"].filter(num => num.includes(searchTerm));
+            filteredNumbers["39"] = numbersData["39"].filter(num => num.includes(searchTerm));
+        }
+
+        // 渲染号码列表
+        function renderNumbers(packageType) {
+            const container = document.getElementById(\`numberList\${packageType}\`);
+            const currentPage = currentPages[packageType];
+            const startIndex = (currentPage - 1) * itemsPerPage;
+            const endIndex = startIndex + itemsPerPage;
+            const numbersToShow = filteredNumbers[packageType].slice(startIndex, endIndex);
+            
+            container.innerHTML = '';
+            
+            if (numbersToShow.length === 0) {
+                container.innerHTML = '<div class="no-results" style="grid-column: span 2; text-align: center; padding: 40px; color: #7b68ee; font-size: 16px;"><i class="fas fa-search"></i> 没有找到匹配的号码</div>';
+            } else {
+                numbersToShow.forEach(number => {
+                    const numberItem = document.createElement('div');
+                    numberItem.className = 'number-item';
+                    
+                    // 应用状态样式
+                    if (numbersStatusData[number]) {
+                        if (numbersStatusData[number].status === "已售") {
+                            numberItem.classList.add('sold');
+                        } else if (numbersStatusData[number].status === "已占用") {
+                            numberItem.classList.add('occupied');
+                        }
+                    }
+                    
+                    // 获取号码类型
+                    const numberType = numbersStatusData[number]?.type || "";
+                    let typeBadge = "";
+                    
+                    if (numberType === "热门") {
+                        typeBadge = '<div class="type-badge hot-badge">热门</div>';
+                    } else if (numberType === "顺子") {
+                        typeBadge = '<div class="type-badge shunzi-badge">顺子</div>';
+                    } else if (numberType === "靓号") {
+                        typeBadge = '<div class="type-badge beauty-badge">靓号</div>';
+                    }
+                    
+                    numberItem.innerHTML = \`
+                        \${typeBadge}
+                        <div class="number">\${number}</div>
+                        <div class="package">\${packageType}元套餐</div>
+                    \`;
+                    
+                    numberItem.addEventListener('click', function() {
+                        if (isAdmin && isMarkingStatus) {
+                            // 标记/取消标记状态
+                            if (numbersStatusData[number]) {
+                                delete numbersStatusData[number];
+                                this.classList.remove('sold', 'occupied');
+                            } else {
+                                // 状态选择对话框
+                                const status = prompt("请选择状态:\\n1. 已售\\n2. 已占用\\n3. 空闲", "1");
+                                let statusText = "空闲";
+                                
+                                if (status === "1") statusText = "已售";
+                                else if (status === "2") statusText = "已占用";
+                                
+                                // 类型选择对话框
+                                const type = prompt("请选择类型:\\n1. 热门\\n2. 顺子\\n3. 靓号\\n4. 无", "1");
+                                let typeText = "";
+                                if (type === "1") typeText = "热门";
+                                else if (type === "2") typeText = "顺子";
+                                else if (type === "3") typeText = "靓号";
+                                
+                                const buyer = prompt(\`请输入\${number}的办理人姓名:\`) || "未填写";
+                                const now = new Date();
+                                const dateStr = \`\${now.getFullYear()}-\${String(now.getMonth()+1).padStart(2, '0')}-\${String(now.getDate()).padStart(2, '0')}\`;
+                                const remark = prompt(\`请输入\${number}的备注信息（可选）:\`) || "";
+                                
+                                numbersStatusData[number] = { 
+                                    package: packageType,
+                                    type: typeText,
+                                    status: statusText,
+                                    buyer: buyer,
+                                    date: dateStr,
+                                    remark: remark
+                                };
+                                
+                                if (statusText === "已售") {
+                                    this.classList.add('sold');
+                                } else if (statusText === "已占用") {
+                                    this.classList.add('occupied');
+                                }
+                            }
+                            updateStats();
+                            renderAdminDashboard();
+                        } else if (!numbersStatusData[number] || numbersStatusData[number].status === "空闲") {
+                            // 选择号码（仅当号码空闲时）
+                            document.querySelectorAll('.number-item').forEach(item => {
+                                item.classList.remove('selected');
+                            });
+                            this.classList.add('selected');
+                            console.log(\`已选择号码: \${number}, 套餐: \${packageType}元\`);
+                        }
+                    });
+                    
+                    container.appendChild(numberItem);
+                });
+            }
+            
+            // 更新分页信息
+            const totalPages = Math.ceil(filteredNumbers[packageType].length / itemsPerPage);
+            const paginationContainer = document.querySelector(\`#package\${packageType} .pagination\`);
+            paginationContainer.querySelector('.current-page').textContent = currentPage;
+            
+            // 更新分页按钮状态
+            const prevBtn = paginationContainer.querySelector('.prev-page');
+            const nextBtn = paginationContainer.querySelector('.next-page');
+            prevBtn.disabled = currentPage <= 1;
+            nextBtn.disabled = currentPage >= totalPages;
+        }
+        
+        // 渲染管理员后台
+        function renderAdminDashboard() {
+            const tableBody = document.getElementById('adminTableBody');
+            tableBody.innerHTML = '';
+            
+            // 获取所有号码并排序
+            const allNumbers = [...numbersData["29"], ...numbersData["39"]];
+            const numberStatusList = allNumbers.map(number => {
+                return {
+                    number,
+                    data: numbersStatusData[number] || {
+                        package: number.startsWith("130") ? "29" : "39",
+                        type: "",
+                        status: "空闲",
+                        buyer: "",
+                        date: "",
+                        remark: ""
+                    }
+                };
+            });
+            
+            numberStatusList.sort((a, b) => {
+                const dateA = new Date(a.data.date);
+                const dateB = new Date(b.data.date);
+                
+                if (sortDirection === "asc") {
+                    return dateA - dateB;
+                } else {
+                    return dateB - dateA;
+                }
+            });
+            
+            // 添加所有号码
+            numberStatusList.forEach(({ number, data }) => {
+                const row = document.createElement('tr');
+                row.innerHTML = \`
+                    <td>\${number}</td>
+                    <td>\${data.package}元套餐</td>
+                    <td>
+                        <select class="type-select" data-number="\${number}">
+                            <option value="" \${data.type === '' ? 'selected' : ''}>无</option>
+                            <option value="热门" \${data.type === '热门' ? 'selected' : ''}>热门</option>
+                            <option value="顺子" \${data.type === '顺子' ? 'selected' : ''}>顺子</option>
+                            <option value="靓号" \${data.type === '靓号' ? 'selected' : ''}>靓号</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="status-select" data-number="\${number}">
+                            <option value="空闲" \${data.status === '空闲' ? 'selected' : ''}>空闲</option>
+                            <option value="已占用" \${data.status === '已占用' ? 'selected' : ''}>已占用</option>
+                            <option value="已售" \${data.status === '已售' ? 'selected' : ''}>已售</option>
+                        </select>
+                    </td>
+                    <td>
+                        <input type="text" value="\${data.buyer}" data-number="\${number}" class="buyer-input">
+                    </td>
+                    <td>
+                        <input type="date" value="\${data.date}" data-number="\${number}" class="date-input">
+                    </td>
+                    <td>
+                        <textarea data-number="\${number}" class="remark-input">\${data.remark || ''}</textarea>
+                    </td>
+                    <td class="actions">
+                        <button class="save-btn" data-number="\${number}">保存</button>
+                    </td>
+                \`;
+                tableBody.appendChild(row);
+            });
+            
+            // 添加保存按钮事件
+            document.querySelectorAll('.save-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const number = this.dataset.number;
+                    const buyerInput = document.querySelector(\`.buyer-input[data-number="\${number}"]\`);
+                    const dateInput = document.querySelector(\`.date-input[data-number="\${number}"]\`);
+                    const remarkInput = document.querySelector(\`.remark-input[data-number="\${number}"]\`);
+                    const statusSelect = document.querySelector(\`.status-select[data-number="\${number}"]\`);
+                    const typeSelect = document.querySelector(\`.type-select[data-number="\${number}"]\`);
+                    
+                    if (!numbersStatusData[number]) {
+                        numbersStatusData[number] = {
+                            package: number.startsWith("130") ? "29" : "39",
+                            type: "",
+                            status: "空闲",
+                            buyer: "",
+                            date: "",
+                            remark: ""
+                        };
+                    }
+                    
+                    numbersStatusData[number].buyer = buyerInput.value;
+                    numbersStatusData[number].date = dateInput.value;
+                    numbersStatusData[number].remark = remarkInput.value;
+                    numbersStatusData[number].status = statusSelect.value;
+                    numbersStatusData[number].type = typeSelect.value;
+                    
+                    // 重新排序并刷新表格
+                    renderAdminDashboard();
+                    renderNumbers("29");
+                    renderNumbers("39");
+                    alert('信息已更新！');
+                });
+            });
+        }
+        
+        // 导出数据为CSV
+        function exportData() {
+            let csvContent = "手机号码,套餐类型,类型,状态,办理人,办理时间,备注\\n";
+            
+            // 获取所有号码
+            const allNumbers = [...numbersData["29"], ...numbersData["39"]];
+            
+            // 排序
+            const sortedNumbers = allNumbers.sort((a, b) => {
+                const dataA = numbersStatusData[a] || { date: "" };
+                const dataB = numbersStatusData[b] || { date: "" };
+                const dateA = new Date(dataA.date);
+                const dateB = new Date(dataB.date);
+                return dateB - dateA;
+            });
+            
+            // 构建CSV内容
+            sortedNumbers.forEach(number => {
+                const data = numbersStatusData[number] || {
+                    package: number.startsWith("130") ? "29" : "39",
+                    type: "",
+                    status: "空闲",
+                    buyer: "",
+                    date: "",
+                    remark: ""
+                };
+                
+                const remark = data.remark ? data.remark.replace(/,/g, '，') : '';
+                csvContent += \`\${number},\${data.package}元套餐,\${data.type},\${data.status},\${data.buyer},\${data.date},\${remark}\\n\`;
+            });
+            
+            // 创建Blob对象
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            
+            // 创建下载链接
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", "大流量卡销售数据.csv");
+            link.style.visibility = 'hidden';
+            
+            // 添加到文档并触发点击
+            document.body.appendChild(link);
+            link.click();
+            
+            // 清理
+            document.body.removeChild(link);
+        }
+        
+        // 导入数据
+        function importData() {
+            const fileInput = document.getElementById('dataFile');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请选择要导入的文件');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                let contents = e.target.result;
+                let lines = [];
+                
+                // 根据文件类型解析
+                if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                    // 使用SheetJS库解析Excel
+                    try {
+                        const workbook = XLSX.read(contents, {type: 'binary'});
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        contents = XLSX.utils.sheet_to_csv(firstSheet);
+                        lines = contents.split('\\n');
+                    } catch (e) {
+                        alert('Excel解析错误: ' + e.message);
+                        return;
+                    }
+                } else {
+                    // 处理CSV/TXT
+                    lines = contents.split('\\n');
+                }
+                
+                // 处理数据行
+                for (let i = 1; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    if (!line) continue;
+                    
+                    const [number, packageType, type, status, buyer, date, remark] = line.split(',');
+                    
+                    if (number && packageType && status) {
+                        numbersStatusData[number] = {
+                            package: packageType.replace('元套餐', ''),
+                            type: type || "",
+                            status: status,
+                            buyer: buyer || "",
+                            date: date || "",
+                            remark: remark ? remark.replace(/，/g, ',') : ""
+                        };
+                    }
+                }
+                
+                // 更新界面
+                updateStats();
+                renderNumbers("29");
+                renderNumbers("39");
+                renderAdminDashboard();
+                
+                alert('数据导入成功！');
+            };
+            
+            if (file.name.endsWith('.xls') || file.name.endsWith('.xlsx')) {
+                reader.readAsBinaryString(file);
+            } else {
+                reader.readAsText(file, 'UTF-8');
+            }
+        }
+        
+        // 启用二维码拖动功能
+        function enableQrDrag() {
+            const qr = document.getElementById('wechatQrcode');
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            qr.addEventListener('mousedown', startDrag);
+            qr.addEventListener('touchstart', startDrag, { passive: false });
+            
+            function startDrag(e) {
+                if (e.type === 'mousedown') {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                } else if (e.type === 'touchstart') {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                }
+                
+                // 获取当前位置（兼容不同浏览器）
+                const rect = qr.getBoundingClientRect();
+                startLeft = rect.left;
+                startTop = rect.top;
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchend', stopDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                let clientX, clientY;
+                if (e.type === 'mousemove') {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                } else if (e.type === 'touchmove') {
+                    if (e.touches.length === 0) return;
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                
+                const deltaX = clientX - startX;
+                const deltaY = clientY - startY;
+                
+                qr.style.left = \`\${startLeft + deltaX}px\`;
+                qr.style.top = \`\${startTop + deltaY}px\`;
+                
+                // 边界检查，防止移出可视区域
+                const rect = qr.getBoundingClientRect();
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                if (rect.left < 0) qr.style.left = '0px';
+                if (rect.top < 0) qr.style.top = '0px';
+                if (rect.right > windowWidth) qr.style.left = \`\${windowWidth - rect.width}px\`;
+                if (rect.bottom > windowHeight) qr.style.top = \`\${windowHeight - rect.height}px\`;
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+            }
+        }
+    <\/script>
+</body>
+</html>`;
+            
+            // 创建下载
+            const blob = new Blob([htmlContent], {type: 'text/html'});
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = '大流量卡选号_备份.html';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        }
+        
+        // 启用二维码拖动功能
+        function enableQrDrag() {
+            const qr = document.getElementById('wechatQrcode');
+            let isDragging = false;
+            let startX, startY, startLeft, startTop;
+            
+            qr.addEventListener('mousedown', startDrag);
+            qr.addEventListener('touchstart', startDrag, { passive: false });
+            
+            function startDrag(e) {
+                if (e.type === 'mousedown') {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.clientX;
+                    startY = e.clientY;
+                } else if (e.type === 'touchstart') {
+                    e.preventDefault();
+                    isDragging = true;
+                    startX = e.touches[0].clientX;
+                    startY = e.touches[0].clientY;
+                }
+                
+                // 获取当前位置（兼容不同浏览器）
+                const rect = qr.getBoundingClientRect();
+                startLeft = rect.left;
+                startTop = rect.top;
+                
+                document.addEventListener('mousemove', drag);
+                document.addEventListener('touchmove', drag, { passive: false });
+                document.addEventListener('mouseup', stopDrag);
+                document.addEventListener('touchend', stopDrag);
+            }
+            
+            function drag(e) {
+                if (!isDragging) return;
+                
+                let clientX, clientY;
+                if (e.type === 'mousemove') {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                } else if (e.type === 'touchmove') {
+                    if (e.touches.length === 0) return;
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                }
+                
+                const deltaX = clientX - startX;
+                const deltaY = clientY - startY;
+                
+                qr.style.left = `${startLeft + deltaX}px`;
+                qr.style.top = `${startTop + deltaY}px`;
+                
+                // 边界检查，防止移出可视区域
+                const rect = qr.getBoundingClientRect();
+                const windowWidth = window.innerWidth;
+                const windowHeight = window.innerHeight;
+                
+                if (rect.left < 0) qr.style.left = '0px';
+                if (rect.top < 0) qr.style.top = '0px';
+                if (rect.right > windowWidth) qr.style.left = `${windowWidth - rect.width}px`;
+                if (rect.bottom > windowHeight) qr.style.top = `${windowHeight - rect.height}px`;
+            }
+            
+            function stopDrag() {
+                isDragging = false;
+                document.removeEventListener('mousemove', drag);
+                document.removeEventListener('touchmove', drag);
+                document.removeEventListener('mouseup', stopDrag);
+                document.removeEventListener('touchend', stopDrag);
+            }
+        }
+    </script>
+</body>
+</html>
