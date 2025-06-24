@@ -1,18 +1,19 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
 
- "zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name=="viewport" content"width=device-width, initial-scale=1.0">
-    <标题>大流量卡选号</标题>
-    <链接 关系"样式表" 链接"https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>大流量卡选号</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <样式>
-        *  {
-            边距：0;
-            
-            盒模型：边框盒模型;
-            字体：'Segoe UI'，'Microsoft YaHei'，无衬线字体;
-        输入：}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft YaHei', sans-serif;
+        }
         
         body {
             background: linear-gradient(135deg, #f0f5ff 0%, #e6f0ff 100%);
@@ -26,41 +27,41 @@
             overflow-x: hidden;
         }
         
-
+        .container {
             width: 100%;
             max-width: 1000px;
             background: white;
             border-radius: 16px;
             box-shadow: 0 12px 40px rgba(98, 70, 234, 0.15);
-            溢出: 隐藏;
-            上边距：20px;
-            边框: 1px 实线 #eaeaea;
+            overflow: hidden;
+            margin-top: 20px;
+            border: 1px solid #eaeaea;
         }
         
-        标题 {
+        header {
             background: linear-gradient(90deg, #6246ea 0%, #7b68ee 100%);
-            颜色：白色；
-            填充：20px;
+            color: white;
+            padding: 20px;
             text-align: center;
-            位置: 相对;
+            position: relative;
         }
         
         .brand {
             display: flex;
-            对齐项目：居中；
-            项目对齐方式：居中；
-            缝隙：10px;
-            bottom外边距: 15px;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 15px;
         }
         
         .brand h1 {
-            字体大小: 22px;
+            font-size: 22px;
         }
         
         .brand-icon {
-            字体大小: 24px;
+            font-size: 24px;
             background: rgba(255, 255, 255, 0.2);
-            宽度：45px;
+            width: 45px;
             height: 45px;
             border-radius: 50%;
             display: flex;
@@ -510,7 +511,7 @@
             70% { box-shadow: 0 0 0 10px rgba(30, 144, 255, 0); }
             100% { box-shadow: 0 0 0 0 rgba(30, 144, 255, 0); }
         }
-
+        
         /* 管理员后台样式 */
         .admin-backdrop {
             position: fixed;
@@ -986,6 +987,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <header>
@@ -995,7 +997,7 @@
                 </div>
                 <h1>大流量卡选号</h1>
             </div>
-            
+
             <div class="admin-section">
                 <button class="admin-btn" id="adminBtn">
                     <i class="fas fa-user-cog"></i> 管理员
@@ -1026,7 +1028,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <div class="package-buttons">
                 <button class="package-btn active" data-package="29">
                     <i class="fas fa-mobile-alt"></i> 29元套餐
@@ -1036,14 +1038,14 @@
                 </button>
             </div>
         </header>
-        
+
         <div class="search-box">
             <div class="search-container">
                 <i class="fas fa-search"></i>
                 <input type="text" id="searchInput" placeholder="输入号码搜索...">
             </div>
         </div>
-        
+
         <div class="content">
             <!-- 29元套餐号码容器 -->
             <div class="numbers-container active" id="package29">
@@ -1065,7 +1067,7 @@
                 </div>
             </div>
         </div>
-        
+
         <div class="fee-details">
             <h2><i class="fas fa-file-invoice-dollar"></i> 套餐资费详情</h2>
             <table class="fee-table">
@@ -1139,7 +1141,7 @@
                         <div class="value" id="statPackage39">10</div>
                     </div>
                 </div>
-                
+
                 <div class="admin-actions">
                     <button class="export-btn" id="exportBtn">
                         <i class="fas fa-file-export"></i> 导出数据
@@ -1148,13 +1150,13 @@
                         <i class="fas fa-file-import"></i> 导入数据
                     </button>
                 </div>
-                
+
                 <div class="import-area" id="importArea">
                     <p>请上传数据文件（支持CSV/TXT/XLS/XLSX格式）</p>
                     <input type="file" id="dataFile" accept=".csv,.txt,.xls,.xlsx">
                     <button id="confirmImport">确认导入</button>
                 </div>
-                
+
                 <table class="admin-table">
                     <thead>
                         <tr>
@@ -1180,7 +1182,7 @@
         // 号码数据
         const numbersData = {
             "29": [
-                "13008115828", "13008116639", "13008116720", "13008116782", "13008116835","13008111828", 
+                "13008111828", "13008115828", "13008116639", "13008116720", "13008116782", "13008116835",
                 "13008116839", "13008116935", "13008116938", "13008116972", "13008117009", "13008117013",
                 "13008117062", "13008117126", "13008117218", "13008117398", "13008117521", "13008117527",
                 "13008117562", "13008117598", "13008117705", "13008117707", "15680990051", "15680990061",
@@ -1217,7 +1219,7 @@
                 "13008119907", "13008119909", "13008119916", "13008119970"
             ]
         };
-
+        
         // 号码状态和类型数据
         let numbersStatusData = {
             "13008111828": { 
@@ -1227,15 +1229,7 @@
                 buyer: "",
                 date: "",
                 remark: ""
-                  },
-          "15680990225": { 
-                package: "29", 
-                type: "",
-                status: "已售",
-                buyer: "",
-                date: "2025/6/22",
-                remark: ""
-                    },
+            },
           "15680990051": { 
                 package: "29", 
                 type: "靓号",
@@ -1281,7 +1275,7 @@
                 type: "靓号",
                 status: "已售",
                 buyer: "",
-                date: "2025/6/23",
+                date: "",
                 remark: ""
             },
           "13008113883": { 
@@ -1313,7 +1307,7 @@
                 type: "靓号",
                 status: "已售",
                 buyer: "",
-                date: "2025/6/22",
+                date: "",
                 remark: ""
               },
           "15680990550": { 
@@ -1421,6 +1415,14 @@
                 remark: ""
             },
             "13008116720": { 
+                package: "29", 
+                type: "",
+                status: "已售",
+                buyer: "",
+                date: "",
+                remark: ""
+               },
+            "15680990225": { 
                 package: "29", 
                 type: "",
                 status: "已售",
@@ -1769,7 +1771,7 @@
                 type: "",
                 status: "已售",
                 buyer: "",
-                date: "2025/6/23",
+                date: "",
                 remark: ""
             },
             "13008110868": { 
@@ -1777,7 +1779,7 @@
                 type: "热门",
                 status: "已售",
                 buyer: "",
-                date: "2025/6/23",
+                date: "",
                 remark: ""
             },
             "13008110960": { 
@@ -2132,7 +2134,7 @@
         let isAdmin = false;
         let isMarkingStatus = false;
         let sortDirection = "desc"; // 默认按日期降序排列
-
+        
         // 初始化页面
         document.addEventListener('DOMContentLoaded', function() {
             renderNumbers("29");
@@ -2257,7 +2259,7 @@
             // 添加二维码拖动功能
             enableQrDrag();
         });
-
+        
         // 更新统计信息
         function updateStats() {
             const total = numbersData["29"].length + numbersData["39"].length;
@@ -2281,7 +2283,7 @@
             document.getElementById('statPackage29').textContent = package29Count;
             document.getElementById('statPackage39').textContent = package39Count;
         }
-
+        
         // 过滤号码
         function filterNumbers(searchTerm) {
             if (searchTerm === '') {
@@ -2293,7 +2295,7 @@
             filteredNumbers["29"] = numbersData["29"].filter(num => num.includes(searchTerm));
             filteredNumbers["39"] = numbersData["39"].filter(num => num.includes(searchTerm));
         }
-
+        
         // 渲染号码列表
         function renderNumbers(packageType) {
             const container = document.getElementById(`numberList${packageType}`);
@@ -2646,27 +2648,27 @@
             const cleanAdminBackdropHTML = adminBackdropHTML.replace('admin-backdrop active', 'admin-backdrop');
             
             const htmlContent = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>大流量卡选号</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>
-    <style>
+        <html lang="zh-CN">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>大流量卡选号</title>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+            <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"><\/script>
+            <style>
         ${document.querySelector('style').innerHTML}
-    </style>
-</head>
-<body>
-    <div class="container">
+            </style>
+        </head>
+        <body>
+            <div class="container">
         ${containerHTML}
-    </div>
-    
-    ${wechatQrcodeHTML}
-    
-    ${cleanAdminBackdropHTML}
-
-    <script>
+            </div>
+            
+            ${wechatQrcodeHTML}
+            
+            ${cleanAdminBackdropHTML}
+        
+            <script>
         // 号码数据
         const numbersData = ${JSON.stringify(numbersData)};
         
@@ -2809,7 +2811,7 @@
             // 添加二维码拖动功能
             enableQrDrag();
         });
-
+        
         // 更新统计信息
         function updateStats() {
             const total = numbersData["29"].length + numbersData["39"].length;
@@ -2833,7 +2835,7 @@
             document.getElementById('statPackage29').textContent = package29Count;
             document.getElementById('statPackage39').textContent = package39Count;
         }
-
+        
         // 过滤号码
         function filterNumbers(searchTerm) {
             if (searchTerm === '') {
@@ -2845,7 +2847,7 @@
             filteredNumbers["29"] = numbersData["29"].filter(num => num.includes(searchTerm));
             filteredNumbers["39"] = numbersData["39"].filter(num => num.includes(searchTerm));
         }
-
+        
         // 渲染号码列表
         function renderNumbers(packageType) {
             const container = document.getElementById(\`numberList\${packageType}\`);
@@ -3251,9 +3253,9 @@
                 document.removeEventListener('touchend', stopDrag);
             }
         }
-    <\/script>
-</body>
-</html>`;
+            <\/script>
+        </body>
+        </html>`;
             
             // 创建下载
             const blob = new Blob([htmlContent], {type: 'text/html'});
@@ -3339,4 +3341,5 @@
         }
     </script>
 </body>
+
 </html>
